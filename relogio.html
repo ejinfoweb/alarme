@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio com Tarefas e Alarme</title>
+    <style>
+        body {
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            color: #FFFFFF;
+        }
+        #data {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFFF00;
+            margin: 10px;
+        }
+        #relogio {
+            font-size: 60px;
+            font-weight: bold;
+            color: #FFFFFF;
+            margin: 20px;
+            letter-spacing: 5px;
+        }
+        #periodo {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        #tasks-list {
+            margin-top: 20px;
+            font-size: 24px; /* Aumenta o tamanho da fonte para a lista de tarefas */
+            color: #FFD700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .task {
+            background: #333;
+            border-radius: 5px;
+            padding: 15px; /* Aumenta o padding para melhorar a legibilidade */
+            margin: 10px 0; /* Aumenta a margem para melhor espaçamento */
+            display: inline-block;
+            font-size: 24px; /* Aumenta o tamanho da fonte da tarefa */
+            font-weight: bold; /* Deixa o texto grifado */
+        }
+        /* Responsividade */
+        @media only screen and (max-width: 768px) {
+            #data, #relogio, #periodo {
+                margin: 5px;
+            }
+            #relogio {
+                font-size: 40px;
+            }
+            #tasks-list {
+                font-size: 18px; /* Ajusta o tamanho da fonte para dispositivos móveis */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2 id="data"></h2>
+    <h1 id="relogio"></h1>
+    <h2 id="periodo"></h2>
+    <div id="tasks-list">
+        <!-- As tarefas serão adicionadas aqui -->
+    </div>
+
+    <!-- Áudio configurado para tocar automaticamente -->
+    <audio id="alarm" src="https://www.soundjay.com/button/beep-07.wav" preload="auto"></audio>
+
+    <script>
+        const tasks = [
+            { time: "01:45", message: "ATENÇÃO - Dar o Canabidiol para Franci" },
+            // Adicione mais tarefas aqui
+        ];
+
+        function atualizarRelogio() {
+            const agora = new Date();
+            const hora = agora.getHours();
+            const minutos = agora.getMinutes();
+            const segundos = agora.getSeconds();
+            const dia = agora.getDate();
+            const mes = agora.getMonth() + 1;
+            const ano = agora.getFullYear();
+            const diaSemana = agora.toLocaleDateString("pt-BR", { weekday: "long" }).charAt(0).toUpperCase() + agora.toLocaleDateString("pt-BR", { weekday: "long" }).slice(1);
+
+            let periodo = "";
+            let corPeriodo = "";
+            if (hora >= 0 && hora < 6) {
+                periodo = "Madrugada";
+                corPeriodo = "#FF69B4";
+            } else if (hora >= 6 && hora < 12) {
+                periodo = "Manhã";
+                corPeriodo = "#87CEEB";
+            } else if (hora >= 12 && hora < 18) {
+                periodo = "Tarde";
+                corPeriodo = "#32CD32";
+            } else {
+                periodo = "Noite";
+                corPeriodo = "#C7B8EA";
+            }
+
+            document.getElementById("data").innerHTML = `${diaSemana} - ${dia.toString().padStart(2, "0")}/${mes.toString().padStart(2, "0")}/${ano}`;
+            document.getElementById("relogio").innerHTML = `<span style="font-family: 'Digital-7';">${hora.toString().padStart(2, "0")}:${minutos.toString().padStart(2, "0")}:${segundos.toString().padStart(2, "0")}</span>`;
+            document.getElementById("periodo").innerHTML = `<span style="color: ${corPeriodo};">${periodo}</span>`;
+
+            verificarTarefas(hora, minutos);
+        }
+
+        function verificarTarefas(hora, minuto) {
+            const horaAtual = `${hora.toString().padStart(2, "0")}:${minuto.toString().padStart(2, "0")}`;
+            tasks.forEach(task => {
+                if (task.time === horaAtual) {
+                    mostrarTarefa(task.message);
+                    tocarAlarme();
+                }
+            });
+        }
+
+        function mostrarTarefa(message) {
+            const tasksList = document.getElementById("tasks-list");
+            // Remove tarefas antigas
+            tasksList.innerHTML = '';
+            const taskElement = document.createElement("div");
+            taskElement.className = "task"; // Remove a classe de alerta piscante
+            taskElement.textContent = message;
+            tasksList.appendChild(taskElement);
+            // Remove a tarefa após 1 minuto
+            setTimeout(() => tasksList.innerHTML = '', 60000);
+        }
+
+        function tocarAlarme() {
+            const alarm = document.getElementById("alarm");
+            alarm.play().catch(error => {
+                console.log('Erro ao tentar tocar o alarme: ', error);
+            });
+            setTimeout(() => alarm.pause(), 15000); // Para o alarme após 15 segundos
+        }
+
+        // Adiciona um evento de interação para garantir que o áudio possa tocar
+        document.addEventListener('click', () => {
+            const alarm = document.getElementById("alarm");
+            alarm.play().catch(error => {
+                console.log('Erro ao tentar tocar o alarme no evento de clique: ', error);
+            });
+        });
+
+        atualizarRelogio();
+        setInterval(atualizarRelogio, 1000);
+    </script>
+</body>
+</html>
